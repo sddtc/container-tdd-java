@@ -54,6 +54,17 @@ public class ContainerTest {
       assertNotNull(context.get(Component.class));
       assertSame(dependency, ((ComponentWithInjectConstructor) context.get(Component.class)).getDependency());
     }
+
+    @Test
+    void should_bind_type_to_a_class_with_transitive_constructor() {
+      context.bind(Component.class, ComponentWithInjectConstructor.class);
+      context.bind(Dependency.class, DependencyWithInjectConstructor.class);
+      context.bind(String.class, "indirect dependency");
+
+      Dependency dependency = ((ComponentWithInjectConstructor) context.get(Component.class)).getDependency();
+      assertNotNull(dependency);
+      assertSame("indirect dependency", ((DependencyWithInjectConstructor) dependency).getDependency());
+    }
   }
 
   @Nested
@@ -73,6 +84,20 @@ interface Component {
 
 interface Dependency {
 
+}
+
+class DependencyWithInjectConstructor implements Dependency {
+
+  private String dependency;
+
+  @Inject
+  public DependencyWithInjectConstructor(String dependency) {
+    this.dependency = dependency;
+  }
+
+  public String getDependency() {
+    return dependency;
+  }
 }
 
 class ComponentWithDefaultConstructor implements Component {
