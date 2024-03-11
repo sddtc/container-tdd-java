@@ -1,8 +1,11 @@
 package container;
 
+import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,8 +20,21 @@ public class Context {
   public <C, I extends C> void bind(Class<C> type, Class<I> implementation) {
     providers.put(type, () -> {
       try {
-        return implementation.getConstructor().newInstance();
-      } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+        Constructor<I> injectConstructor = (Constructor<I>) Arrays.stream(implementation.getConstructors())
+            .filter(c -> c.isAnnotationPresent(Inject.class))
+            .findFirst()
+            .orElseGet(() -> {
+              try {
+                return implementation.getConstructor();
+              } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+              }
+            });
+        Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
+            .map(p -> get(p.getType()))
+            .toArray(Object[]::new);
+        return injectConstructor.newInstance(dependencies);
+      } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
         throw new RuntimeException(e);
       }
     });

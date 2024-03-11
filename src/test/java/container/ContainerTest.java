@@ -1,5 +1,6 @@
 package container;
 
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,16 @@ public class ContainerTest {
       assertTrue(instance instanceof ComponentWithDefaultConstructor);
     }
 
+    @Test
+    void should_bind_type_to_a_class_with_inject_constructor() {
+      Dependency dependency = new Dependency() {
+      };
+      context.bind(Dependency.class, dependency);
+      context.bind(Component.class, ComponentWithInjectConstructor.class);
+
+      assertNotNull(context.get(Component.class));
+      assertSame(dependency, ((ComponentWithInjectConstructor) context.get(Component.class)).getDependency());
+    }
   }
 
   @Nested
@@ -60,10 +71,27 @@ interface Component {
 
 }
 
+interface Dependency {
+
+}
+
 class ComponentWithDefaultConstructor implements Component {
 
   public ComponentWithDefaultConstructor() {
 
   }
+}
 
+class ComponentWithInjectConstructor implements Component {
+
+  Dependency dependency;
+
+  @Inject
+  public ComponentWithInjectConstructor(Dependency dependency) {
+    this.dependency = dependency;
+  }
+
+  public Dependency getDependency() {
+    return dependency;
+  }
 }
