@@ -1,5 +1,6 @@
 package container;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -9,8 +10,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ContainerTest {
 
-  interface Component {
+  Context context;
 
+  @BeforeEach
+  public void setup() {
+    context = new Context();
   }
 
   @Nested
@@ -18,7 +22,6 @@ public class ContainerTest {
 
     @Test
     void should_bind_type_to_a_specific_instance() {
-      Context context = new Context();
       Component instance = new Component() {
       };
 
@@ -33,8 +36,6 @@ public class ContainerTest {
 
     @Test
     void should_bind_type_to_a_class_with_default_constructor() {
-      Context context = new Context();
-
       context.bind(Component.class, ComponentWithDefaultConstructor.class);
       Component instance = context.get(Component.class);
 
@@ -55,7 +56,11 @@ public class ContainerTest {
   }
 }
 
-class ComponentWithDefaultConstructor implements ContainerTest.Component {
+interface Component {
+
+}
+
+class ComponentWithDefaultConstructor implements Component {
 
   public ComponentWithDefaultConstructor() {
 
