@@ -14,6 +14,7 @@ repositories {
 }
 
 dependencies {
+  implementation("jakarta.inject:jakarta.inject-api:2.0.1.MR")
   testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
   testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.2")
 }
