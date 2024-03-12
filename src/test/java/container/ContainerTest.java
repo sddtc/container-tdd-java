@@ -74,9 +74,12 @@ public class ContainerTest {
       });
     }
 
-    
-
-
+    @Test
+    void should_throw_exception_if_no_inject_nor_constructors_provided() {
+      assertThrows(IllegalComponentException.class, () -> {
+        context.bind(Component.class, ComponentWithNoInjectNorConstructorProvided.class);
+      });
+    }
   }
 
   @Nested
@@ -142,5 +145,11 @@ class ComponentWithMultiInjectConstructor implements Component {
 
   @Inject
   public ComponentWithMultiInjectConstructor(String name) {
+  }
+}
+
+class ComponentWithNoInjectNorConstructorProvided implements Component {
+
+  public ComponentWithNoInjectNorConstructorProvided(String name) {
   }
 }

@@ -19,21 +19,7 @@ public class Context {
   }
 
   public <C, I extends C> void bind(Class<C> type, Class<I> implementation) {
-    List<Constructor<?>> injectConstructors = Arrays.stream(implementation.getConstructors())
-        .filter(c -> c.isAnnotationPresent(Inject.class)).toList();
-    if (injectConstructors.size() > 1) {
-      throw new IllegalComponentException();
-    }
-    Constructor<I> injectConstructor = (Constructor<I>) injectConstructors
-        .stream()
-        .findFirst()
-        .orElseGet(() -> {
-          try {
-            return implementation.getConstructor();
-          } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-          }
-        });
+    Constructor<I> injectConstructor = getInjectConstructor(implementation);
 
     providers.put(type, () -> {
       try {
@@ -45,6 +31,24 @@ public class Context {
         throw new RuntimeException(e);
       }
     });
+  }
+
+  private static <C, I extends C> Constructor<I> getInjectConstructor(Class<I> implementation) {
+    List<Constructor<?>> injectConstructors = Arrays.stream(implementation.getConstructors())
+        .filter(c -> c.isAnnotationPresent(Inject.class)).toList();
+    if (injectConstructors.size() > 1) {
+      throw new IllegalComponentException();
+    }
+    return (Constructor<I>) injectConstructors
+        .stream()
+        .findFirst()
+        .orElseGet(() -> {
+          try {
+            return implementation.getConstructor();
+          } catch (NoSuchMethodException e) {
+            throw new IllegalComponentException();
+          }
+        });
   }
 
   public <C> C get(Class<C> type) {
