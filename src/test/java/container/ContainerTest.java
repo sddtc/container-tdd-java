@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ContainerTest {
@@ -65,6 +66,17 @@ public class ContainerTest {
       assertNotNull(dependency);
       assertSame("indirect dependency", ((DependencyWithInjectConstructor) dependency).getDependency());
     }
+
+    @Test
+    void should_throw_exception_when_multi_inject_constructor_provided() {
+      assertThrows(IllegalComponentException.class, () -> {
+        context.bind(Component.class, ComponentWithMultiInjectConstructor.class);
+      });
+    }
+
+    
+
+
   }
 
   @Nested
@@ -118,5 +130,17 @@ class ComponentWithInjectConstructor implements Component {
 
   public Dependency getDependency() {
     return dependency;
+  }
+}
+
+
+class ComponentWithMultiInjectConstructor implements Component {
+
+  @Inject
+  public ComponentWithMultiInjectConstructor() {
+  }
+
+  @Inject
+  public ComponentWithMultiInjectConstructor(String name) {
   }
 }

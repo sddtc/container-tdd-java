@@ -7,6 +7,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Context {
@@ -18,18 +19,24 @@ public class Context {
   }
 
   public <C, I extends C> void bind(Class<C> type, Class<I> implementation) {
+    List<Constructor<?>> injectConstructors = Arrays.stream(implementation.getConstructors())
+        .filter(c -> c.isAnnotationPresent(Inject.class)).toList();
+    if (injectConstructors.size() > 1) {
+      throw new IllegalComponentException();
+    }
+    Constructor<I> injectConstructor = (Constructor<I>) injectConstructors
+        .stream()
+        .findFirst()
+        .orElseGet(() -> {
+          try {
+            return implementation.getConstructor();
+          } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+          }
+        });
+
     providers.put(type, () -> {
       try {
-        Constructor<I> injectConstructor = (Constructor<I>) Arrays.stream(implementation.getConstructors())
-            .filter(c -> c.isAnnotationPresent(Inject.class))
-            .findFirst()
-            .orElseGet(() -> {
-              try {
-                return implementation.getConstructor();
-              } catch (NoSuchMethodException e) {
-                throw new RuntimeException(e);
-              }
-            });
         Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
             .map(p -> get(p.getType()))
             .toArray(Object[]::new);
