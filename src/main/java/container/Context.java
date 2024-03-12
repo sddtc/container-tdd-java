@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class Context {
 
@@ -24,7 +25,7 @@ public class Context {
     providers.put(type, () -> {
       try {
         Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
-            .map(p -> get(p.getType()))
+            .map(p -> get(p.getType()).orElseThrow(DependencyNotFoundException::new))
             .toArray(Object[]::new);
         return injectConstructor.newInstance(dependencies);
       } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
@@ -51,8 +52,7 @@ public class Context {
         });
   }
 
-  public <C> C get(Class<C> type) {
-    if(!providers.containsKey(type)) throw new DependencyNotFoundException();
-    return (C) providers.get(type).get();
+  public <C> Optional<C> get(Class<C> type) {
+    return Optional.ofNullable(providers.get(type)).map(p -> (C) p.get());
   }
 }

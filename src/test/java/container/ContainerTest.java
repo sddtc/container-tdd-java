@@ -5,6 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,7 +31,13 @@ public class ContainerTest {
 
       context.bind(Component.class, instance);
 
-      assertSame(instance, context.get(Component.class));
+      assertSame(instance, context.get(Component.class).get());
+    }
+
+    @Test
+    void should_return_empty_if_component_not_defined() {
+      Optional<Component> component = context.get(Component.class);
+      assertTrue(component.isEmpty());
     }
   }
 
@@ -39,7 +47,7 @@ public class ContainerTest {
     @Test
     void should_bind_type_to_a_class_with_default_constructor() {
       context.bind(Component.class, ComponentWithDefaultConstructor.class);
-      Component instance = context.get(Component.class);
+      Component instance = context.get(Component.class).get();
 
       assertNotNull(instance);
       assertTrue(instance instanceof ComponentWithDefaultConstructor);
@@ -53,7 +61,7 @@ public class ContainerTest {
       context.bind(Component.class, ComponentWithInjectConstructor.class);
 
       assertNotNull(context.get(Component.class));
-      assertSame(dependency, ((ComponentWithInjectConstructor) context.get(Component.class)).getDependency());
+      assertSame(dependency, ((ComponentWithInjectConstructor) context.get(Component.class).get()).getDependency());
     }
 
     @Test
@@ -62,7 +70,7 @@ public class ContainerTest {
       context.bind(Dependency.class, DependencyWithInjectConstructor.class);
       context.bind(String.class, "indirect dependency");
 
-      Dependency dependency = ((ComponentWithInjectConstructor) context.get(Component.class)).getDependency();
+      Dependency dependency = ((ComponentWithInjectConstructor) context.get(Component.class).get()).getDependency();
       assertNotNull(dependency);
       assertSame("indirect dependency", ((DependencyWithInjectConstructor) dependency).getDependency());
     }
