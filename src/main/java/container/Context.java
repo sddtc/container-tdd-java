@@ -52,6 +52,7 @@ public class Context {
   }
 
   public <C> C get(Class<C> type) {
+    if(!providers.containsKey(type)) throw new DependencyNotFoundException();
     return (C) providers.get(type).get();
   }
 }

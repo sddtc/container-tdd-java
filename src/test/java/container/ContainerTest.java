@@ -80,6 +80,14 @@ public class ContainerTest {
         context.bind(Component.class, ComponentWithNoInjectNorConstructorProvided.class);
       });
     }
+
+    @Test
+    void should_throw_exception_if_no_inject_dependency_found() {
+      assertThrows(DependencyNotFoundException.class, () -> {
+        context.bind(Component.class, ComponentWithInjectConstructor.class);
+        context.get(Component.class);
+      });
+    }
   }
 
   @Nested
