@@ -22,19 +22,34 @@ public class Context {
   public <C, I extends C> void bind(Class<C> type, Class<I> implementation) {
     Constructor<I> injectConstructor = getInjectConstructor(implementation);
 
-    providers.put(type, () -> {
+    providers.put(type, new ConstructorInjectionProvider<>(injectConstructor));
+  }
+
+  class ConstructorInjectionProvider<T> implements Provider<T> {
+    Constructor<T> injectConstructor;
+    private boolean constructed = false;
+
+    public ConstructorInjectionProvider(Constructor<T> injectConstructor) {
+      this.injectConstructor = injectConstructor;
+    }
+
+    @Override
+    public T get() {
+      if (constructed) throw new CircleDependencyFoundException();
       try {
+        constructed = true;
         Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
-            .map(p -> get(p.getType()).orElseThrow(DependencyNotFoundException::new))
+            .map(p -> Context.this.get(p.getType()).orElseThrow(DependencyNotFoundException::new))
             .toArray(Object[]::new);
         return injectConstructor.newInstance(dependencies);
       } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
         throw new RuntimeException(e);
-      } catch (StackOverflowError e) {
-        throw new CircleDependencyFoundException();
+      } finally {
+        constructed = false;
       }
-    });
+    }
   }
+
 
   private static <C, I extends C> Constructor<I> getInjectConstructor(Class<I> implementation) {
     List<Constructor<?>> injectConstructors = Arrays.stream(implementation.getConstructors())
