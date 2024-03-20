@@ -96,6 +96,15 @@ public class ContainerTest {
         context.get(Component.class);
       });
     }
+
+    @Test
+    void should_throw_exception_if_circle_dependencies_found() {
+      assertThrows(CircleDependencyFoundException.class, () -> {
+        context.bind(Component.class, ComponentWithInjectConstructor.class);
+        context.bind(Dependency.class, DependencyWithComponentDependency.class);
+        context.get(Component.class);
+      });
+    }
   }
 
   @Nested
@@ -119,6 +128,7 @@ interface Dependency {
 
 class DependencyWithInjectConstructor implements Dependency {
 
+
   private String dependency;
 
   @Inject
@@ -128,6 +138,16 @@ class DependencyWithInjectConstructor implements Dependency {
 
   public String getDependency() {
     return dependency;
+  }
+}
+
+class DependencyWithComponentDependency implements Dependency {
+
+  private Component component;
+
+  @Inject
+  public DependencyWithComponentDependency(Component component) {
+    this.component = component;
   }
 }
 

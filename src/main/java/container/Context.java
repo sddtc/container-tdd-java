@@ -30,6 +30,8 @@ public class Context {
         return injectConstructor.newInstance(dependencies);
       } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
         throw new RuntimeException(e);
+      } catch (StackOverflowError e) {
+        throw new CircleDependencyFoundException();
       }
     });
   }
